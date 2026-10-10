@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10243a">
+<title>معلّم الحاسوب التفاعلي</title>
+<style>
+:root{--navy:#10243a;--teal:#087f8c;--mint:#10a58f;--bg:#f1f5f9;--ink:#172b42;--muted:#64748b;--line:#dbe4ed;--white:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.8}
+header{background:linear-gradient(135deg,var(--navy),var(--teal));color:white;padding:26px 16px;text-align:center}
+header h1{margin:0;font-size:clamp(24px,4vw,34px)} header p{color:#dceef3;margin:6px 0 0}
+main{max-width:1000px;margin:auto;padding:18px}
+.panel{background:var(--white);border-radius:16px;padding:20px;margin:0 0 18px;box-shadow:0 5px 18px #10243a12}
+h2{color:var(--teal);margin-top:0}
+label{display:block;font-weight:bold;margin:8px 0 4px}
+input,select{font:inherit;width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:9px;background:white;color:var(--ink)}
+button{font:inherit;border:0;border-radius:9px;background:var(--teal);color:white;padding:10px 15px;margin:4px 2px;cursor:pointer}
+button:hover{filter:brightness(.93)}button:disabled{opacity:.5;cursor:not-allowed}
+button.secondary{background:#e7eef5;color:var(--ink)}button.danger{background:#b42318}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lesson-card{background:#eaf7f7;border:1px solid #d4eeee;border-radius:12px;padding:14px;margin:12px 0}
+.lesson-card h3{margin:0 0 5px}.lesson-card p{margin:5px 0}
+.stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:#eef6f8;padding:13px;border-radius:12px;text-align:center}
+.stat strong{display:block;font-size:24px;color:var(--teal)}
+.option{display:block;width:100%;text-align:right;background:#edf2f7;color:var(--ink);border:1px solid var(--line);margin:9px 0}
+.option:hover{background:#dceef0}
+.progress-bg{height:10px;background:#e2e8f0;border-radius:20px;overflow:hidden;margin:8px 0 14px}
+#progress{height:100%;width:0;background:var(--mint);transition:width .2s}
+.notice{background:#fff8df;border:1px solid #f3df9a;padding:12px;border-radius:10px;color:#674d00}
+.success{color:#12643b}.error{color:#a21d1d}
+.hidden{display:none!important}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--line)}
+th{background:#f1f7f8}
+.table-wrap{overflow-x:auto}
+footer{text-align:center;padding:20px;color:var(--muted)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #eab308;outline-offset:2px}
+@media(max-width:620px){main{padding:12px}.panel{padding:15px}.field-grid,.grid{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr 1fr}.stat:last-child{grid-column:1/-1}header{padding:22px 12px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>💻 معلّم الحاسوب التفاعلي</h1>
+  <p>تعلّم • اختبر معلوماتك • تابع تقدّمك</p>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>👤 ملف الطالب</h2>
+    <p>أدخل بياناتك حتى تُربط نتائج الاختبارات بهذا الملف على هذا الجهاز.</p>
+    <div class="field-grid">
+      <div><label for="studentName">اسم الطالب</label><input id="studentName" maxlength="70" placeholder="اكتب اسمك"></div>
+      <div><label for="studentGrade">المرحلة الدراسية</label>
+        <select id="studentGrade">
+          <option value="المرحلة المتوسطة">المرحلة المتوسطة</option>
+          <option value="المرحلة الإعدادية">المرحلة الإعدادية</option>
+        </select>
+      </div>
+    </div>
+    <button id="saveProfile">حفظ ملف الطالب</button>
+    <span id="profileMessage" role="status"></span>
+  </section>
+
+  <section class="panel">
+    <h2>📊 لوحة التقدّم</h2>
+    <div class="stat-grid">
+      <div class="stat"><strong id="attemptCount">0</strong><span>عدد المحاولات</span></div>
+      <div class="stat"><strong id="bestScore">—</strong><span>أفضل نتيجة</span></div>
+      <div class="stat"><strong id="averageScore">—</strong><span>متوسط النتائج</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>📚 مكتبة الدروس</h2>
+    <label for="lessonSelect">اختر موضوع الدرس</label>
+    <select id="lessonSelect">
+      <option value="0">مكونات الحاسوب</option>
+      <option value="1">البرمجيات وأنظمة التشغيل</option>
+      <option value="2">الشبكات والإنترنت</option>
+      <option value="3">الأمن الرقمي</option>
+    </select>
+    <article id="lessonContent" class="lesson-card"></article>
+  </section>
+
+  <section class="panel">
+    <h2>🧠 اختبار معلوماتك</h2>
+    <p class="notice">هذا اختبار تجريبي للتعلّم. راجع المنهج المعتمد قبل استخدامه كتقييم رسمي.</p>
+    <p id="questionCount">السؤال 1</p>
+    <div class="progress-bg"><div id="progress"></div></div>
+    <h3 id="question"></h3>
+    <div id="answers"></div>
+    <p id="feedback" role="status" aria-live="polite">اختر الإجابة الصحيحة.</p>
+    <button id="next" disabled>السؤال التالي ←</button>
+    <button id="restart" class="secondary">إعادة الاختبار</button>
+    <div id="finalResult" class="lesson-card hidden" aria-live="polite"></div>
+  </section>
+
+  <section class="panel">
+    <h2>🗂️ سجل النتائج السابقة</h2>
+    <p>تُحفظ النتائج في هذا المتصفح على هذا الجهاز فقط.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>التاريخ</th><th>الطالب</th><th>المرحلة</th><th>الدرجة</th><th>النسبة</th></tr></thead>
+        <tbody id="historyBody"><tr><td colspan="5">لا توجد نتائج محفوظة بعد.</td></tr></tbody>
+      </table>
+    </div>
+    <button id="clearHistory" class="danger">مسح سجل النتائج</button>
+    <p id="historyMessage" role="status"></p>
+  </section>
+</main>
+
+<footer>مشروع تعليمي تجريبي — معلّم الحاسوب التفاعلي</footer>
+
+<script>
+"use strict";
+
+const STORAGE_PROFILE = "computerTeacherProfile_v1";
+const STORAGE_RESULTS = "computerTeacherResults_v1";
+
+const lessons = [
+  {
+    title: "مكونات الحاسوب",
+    text: "يتكون الحاسوب من أجزاء مادية وبرمجيات تعمل معاً لمعالجة البيانات وتحويلها إلى معلومات.",
+    points: [
+      "CPU: وحدة المعالجة المركزية، تنفذ التعليمات وتعالج البيانات.",
+      "RAM: ذاكرة مؤقتة للبيانات والبرامج المستخدمة أثناء التشغيل.",
+      "لوحة المفاتيح وسيلة إدخال، والشاشة وسيلة إخراج."
+    ]
+  },
+  {
+    title: "البرمجيات وأنظمة التشغيل",
+    text: "البرمجيات هي البرامج والتعليمات التي تساعد الحاسوب على تنفيذ المهام.",
+    points: [
+      "نظام التشغيل يدير موارد الحاسوب ويوفر واجهة للمستخدم.",
+      "Windows وLinux أمثلة على أنظمة التشغيل.",
+      "تطبيق معالجة النصوص مثال على برنامج تطبيقي."
+    ]
+  },
+  {
+    title: "الشبكات والإنترنت",
+    text: "تربط الشبكات الأجهزة لتبادل البيانات ومشاركة الموارد، والإنترنت شبكة عالمية من الشبكات.",
+    points: [
+      "LAN: شبكة ضمن مساحة محدودة مثل مختبر المدرسة.",
+      "Router: موجّه يمرر البيانات بين الشبكات.",
+      "متصفح الويب برنامج لزيارة مواقع الإنترنت."
+    ]
+  },
+  {
+    title: "الأمن الرقمي",
+    text: "يساعد الأمن الرقمي على حماية الأجهزة والحسابات والبيانات من الاستخدام غير المصرح به.",
+    points: [
+      "استخدم كلمات مرور قوية وفريدة.",
+      "لا تفتح الروابط أو المرفقات المشبوهة.",
+      "لا تشارك كلمة المرور أو رموز التحقق مع الآخرين."
+    ]
+  }
+];
+
+const questions = [
+  {q:"ما الجزء الذي ينفذ التعليمات ويعالج البيانات؟", options:["الشاشة","وحدة المعالجة المركزية CPU","الطابعة"], correct:1, explanation:"وحدة المعالجة المركزية CPU تنفذ التعليمات وتعالج البيانات."},
+  {q:"أي مما يأتي يُعد نظام تشغيل؟", options:["Windows","لوحة المفاتيح","الشاشة"], correct:0, explanation:"Windows مثال على نظام تشغيل."},
+  {q:"ما الوظيفة الأساسية لذاكرة RAM؟", options:["طباعة الأوراق","عرض الصور فقط","الاحتفاظ المؤقت بالبيانات أثناء العمل"], correct:2, explanation:"RAM تحتفظ مؤقتاً بالبيانات والبرامج التي يحتاجها الجهاز أثناء التشغيل."},
+  {q:"أي جهاز يُستخدم لإدخال النصوص؟", options:["السماعة","لوحة المفاتيح","الشاشة"], correct:1, explanation:"لوحة المفاتيح من وحدات إدخال البيانات."},
+  {q:"ما المقصود بالشبكة المحلية LAN؟", options:["شبكة ضمن مساحة محدودة","نوع من الطابعات","برنامج للرسم"], correct:0, explanation:"LAN تربط الأجهزة ضمن مساحة محلية مثل المدرسة أو المختبر."},
+  {q:"أي مما يأتي يساعد على حماية الحساب؟", options:["مشاركة كلمة المرور","استخدام كلمة مرور قوية وفريدة","فتح كل الروابط"], correct:1, explanation:"كلمة المرور القوية والفريدة تقلل احتمال الوصول غير المصرح به."}
+];
+
+const $ = id => document.getElementById(id);
+let current = 0;
+let score = 0;
+let answered = false;
+let finished = false;
+let profile = {name:"", grade:"المرحلة المتوسطة"};
+
+function readStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+function saveStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+function loadProfile() {
+  const saved = readStorage(STORAGE_PROFILE, null);
+  if (saved && typeof saved.name === "string") {
+    profile = saved;
+    $("studentName").value = profile.name;
+    $("studentGrade").value = profile.grade || "المرحلة المتوسطة";
+  }
+}
+function saveProfile() {
+  const name = $("studentName").value.trim();
+  const grade = $("studentGrade").value;
+  if (!name) {
+    $("profileMessage").textContent = "اكتب اسم الطالب أولاً.";
+    $("profileMessage").className = "error";
+    $("studentName").focus();
+    return false;
+  }
+  profile = {name, grade};
+  if (!saveStorage(STORAGE_PROFILE, profile)) {
+    $("profileMessage").textContent = "تعذر الحفظ. جرّب فتح الملف في متصفح آخر.";
+    $("profileMessage").className = "error";
+    return false;
+  }
+  $("profileMessage").textContent = "تم حفظ ملف الطالب بنجاح.";
+  $("profileMessage").className = "success";
+  renderDashboard();
+  return true;
+}
+function showLesson() {
+  const lesson = lessons[Number($("lessonSelect").value)];
+  const container = $("lessonContent");
+  container.replaceChildren();
+  const title = document.createElement("h3");
+  title.textContent = lesson.title;
+  const description = document.createElement("p");
+  description.textContent = lesson.text;
+  const list = document.createElement("ul");
+  lesson.points.forEach(point => {
+    const item = document.createElement("li");
+    item.textContent = point;
+    list.appendChild(item);
+  });
+  container.append(title, description, list);
+}
+function getResults() {
+  const results = readStorage(STORAGE_RESULTS, []);
+  return Array.isArray(results) ? results : [];
+}
+function renderDashboard() {
+  const results = getResults().filter(r => r.name === profile.name && r.grade === profile.grade);
+  $("attemptCount").textContent = String(results.length);
+  if (!results.length) {
+    $("bestScore").textContent = "—";
+    $("averageScore").textContent = "—";
+    return;
+  }
+  const percentages = results.map(r => Number(r.percent) || 0);
+  $("bestScore").textContent = Math.max(...percentages) + "%";
+  $("averageScore").textContent = Math.round(percentages.reduce((a,b)=>a+b,0) / percentages.length) + "%";
+}
+function renderHistory() {
+  const results = getResults().slice().reverse();
+  const body = $("historyBody");
+  body.replaceChildren();
+  if (!results.length) {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 5;
+    cell.textContent = "لا توجد نتائج محفوظة بعد.";
+    row.appendChild(cell);
+    body.appendChild(row);
+    return;
+  }
+  results.forEach(result => {
+    const row = document.createElement("tr");
+    [result.date, result.name, result.grade, result.score + " / " + result.total, result.percent + "%"].forEach(value => {
+      const cell = document.createElement("td");
+      cell.textContent = String(value);
+      row.appendChild(cell);
+    });
+    body.appendChild(row);
+  });
+}
+function renderQuestion() {
+  answered = false;
+  finished = false;
+  const item = questions[current];
+  $("questionCount").textContent = "السؤال " + (current + 1) + " من " + questions.length;
+  $("progress").style.width = (current / questions.length * 100) + "%";
+  $("question").textContent = item.q;
+  $("feedback").textContent = "اختر الإجابة الصحيحة.";
+  $("answers").replaceChildren();
+  $("finalResult").classList.add("hidden");
+  $("next").disabled = true;
+  $("next").textContent = current === questions.length - 1 ? "عرض النتيجة" : "السؤال التالي ←";
+
+  item.options.forEach((option, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "option";
+    button.textContent = option;
+    button.addEventListener("click", () => selectAnswer(index, button));
+    $("answers").appendChild(button);
+  });
+}
+function selectAnswer(index, selectedButton) {
+  if (answered || finished) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = Array.from($("answers").querySelectorAll("button"));
+  if (index === item.correct) {
+    score++;
+    $("feedback").textContent = "أحسنت! إجابة صحيحة 🎉";
+    $("feedback").className = "success";
+  } else {
+    $("feedback").textContent = "الإجابة غير صحيحة. " + item.explanation;
+    $("feedback").className = "error";
+  }
+  buttons.forEach((button, i) => {
+    button.disabled = true;
+    if (i === item.correct) button.style.background = "#c8f3df";
+    if (i === index && index !== item.correct) button.style.background = "#fee2e2";
+  });
+  $("progress").style.width = ((current + 1) / questions.length * 100) + "%";
+  $("next").disabled = false;
+}
+function finishQuiz() {
+  finished = true;
+  const percent = Math.round(score / questions.length * 100);
+  $("questionCount").textContent = "اكتمل الاختبار!";
+  $("question").textContent = "أحسنت على إكمال الاختبار.";
+  $("answers").replaceChildren();
+  $("feedback").textContent = "";
+  $("next").disabled = true;
+  $("progress").style.width = "100%";
+
+  const resultBox = $("finalResult");
+  resultBox.classList.remove("hidden");
+  resultBox.replaceChildren();
+  const heading = document.createElement("h2");
+  heading.textContent = "🏆 نتيجتك النهائية";
+  const result = document.createElement("p");
+  result.textContent = "الدرجة: " + score + " من " + questions.length + " — النسبة: " + percent + "%";
+  const message = document.createElement("p");
+  message.textContent = percent >= 80 ? "ممتاز! استمر في التعلّم 🌟" : percent >= 60 ? "جيد! راجع الدروس وحاول مجدداً." : "لا تستسلم، راجع الدروس وأعد الاختبار.";
+  resultBox.append(heading, result, message);
+
+  if (!profile.name.trim()) {
+    const warning = document.createElement("p");
+    warning.className = "error";
+    warning.textContent = "لم تُحفظ النتيجة في السجل لأن اسم الطالب غير محفوظ. أدخل اسمك واحفظ الملف ثم أعد الاختبار.";
+    resultBox.appendChild(warning);
+    return;
+  }
+
+  const results = getResults();
+  results.push({
+    name: profile.name,
+    grade: profile.grade,
+    score,
+    total: questions.length,
+    percent,
+    date: new Date().toLocaleString("ar-IQ")
+  });
+  if (!saveStorage(STORAGE_RESULTS, results)) {
+    const warning = document.createElement("p");
+    warning.className = "error";
+    warning.textContent = "تعذر حفظ النتيجة في هذا المتصفح.";
+    resultBox.appendChild(warning);
+  } else {
+    const saved = document.createElement("p");
+    saved.className = "success";
+    saved.textContent = "تم حفظ النتيجة في سجل هذا الجهاز.";
+    resultBox.appendChild(saved);
+  }
+  renderDashboard();
+  renderHistory();
+}
+$("saveProfile").addEventListener("click", saveProfile);
+$("lessonSelect").addEventListener("change", showLesson);
+$("next").addEventListener("click", () => {
+  if (!answered || finished) return;
+  if (current < questions.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    finishQuiz();
+  }
+});
+$("restart").addEventListener("click", () => {
+  current = 0;
+  score = 0;
+  renderQuestion();
+});
+$("clearHistory").addEventListener("click", () => {
+  if (!confirm("هل أنت متأكد من مسح جميع النتائج المحفوظة على هذا المتصفح؟")) return;
+  if (saveStorage(STORAGE_RESULTS, [])) {
+    $("historyMessage").textContent = "تم مسح سجل النتائج.";
+    renderHistory();
+    renderDashboard();
+  } else {
+    $("historyMessage").textContent = "تعذر مسح السجل.";
+  }
+});
+loadProfile();
+showLesson();
+renderQuestion();
+renderDashboard();
+renderHistory();
+</script>
+</body>
+</html>
